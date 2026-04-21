@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package keyboard.prediction.v1;
+
+message PredictionRequest {
+  string text = 1;
+  uint32 top_k = 2;
+}
+
+message SuggestionItem {
+  string word = 1;
+  float score = 2;
+  string source = 3;
+}
+
+message PredictionResponse {
+  string input_text = 1;
+  repeated SuggestionItem suggestions = 2;
+  string error = 3;
+}
