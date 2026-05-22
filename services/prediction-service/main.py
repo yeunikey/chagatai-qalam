@@ -82,7 +82,7 @@ async def predict_ws(websocket: WebSocket):
                 )
 
             await websocket.send_bytes(response_payload)
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, RuntimeError):
         return
 
 

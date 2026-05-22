@@ -8,17 +8,46 @@ services:
     expose:
       - "8000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
 
-  frontend:
+  ramz-service:
     build:
-      context: ./frontend
+      context: ./services/ramz-service
       dockerfile: Dockerfile
-    container_name: frontend
+    container_name: ramz-service
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      CORS_ORIGINS: "http://localhost:8001,http://127.0.0.1:8001,http://localhost,http://127.0.0.1"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  qalam-frontend:
+    build:
+      context: ./frontend/qalam
+      dockerfile: Dockerfile
+    container_name: qalam-frontend
     restart: unless-stopped
     expose:
       - "3000"
@@ -26,7 +55,41 @@ services:
       prediction-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(()=>process.exit(0)).catch(()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then(()=>process.exit(0)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  ramz-frontend:
+    build:
+      context: ./frontend/ramz
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: /api/ramz
+    container_name: ramz-frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: /api/ramz
+    depends_on:
+      ramz-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then((res)=>process.exit(res.ok ? 0 : 1)).catch(()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -41,7 +104,11 @@ services:
     ports:
       - "80:80"
     depends_on:
-      frontend:
+      qalam-frontend:
+        condition: service_healthy
+      ramz-frontend:
         condition: service_healthy
       prediction-service:
+        condition: service_healthy
+      ramz-service:
         condition: service_healthy
