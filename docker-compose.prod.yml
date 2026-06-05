@@ -1,0 +1,94 @@
+services:
+  prediction-service:
+    build:
+      context: ./services/prediction-service
+      dockerfile: Dockerfile
+    container_name: prediction-service
+    restart: unless-stopped
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  ramz-service:
+    build:
+      context: ./services/ramz-service
+      dockerfile: Dockerfile
+    container_name: ramz-service
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://127.0.0.1}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  qalam-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/ramz}
+        NEXT_PUBLIC_PREDICTION_SERVICE_URL: ${NEXT_PUBLIC_PREDICTION_SERVICE_URL:-/api/prediction}
+        NEXT_PUBLIC_PREDICTION_WS_URL: ${NEXT_PUBLIC_PREDICTION_WS_URL:-}
+    container_name: qalam-frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/ramz}
+      NEXT_PUBLIC_PREDICTION_SERVICE_URL: ${NEXT_PUBLIC_PREDICTION_SERVICE_URL:-/api/prediction}
+      NEXT_PUBLIC_PREDICTION_WS_URL: ${NEXT_PUBLIC_PREDICTION_WS_URL:-}
+    depends_on:
+      prediction-service:
+        condition: service_healthy
+      ramz-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then(()=>process.exit(0)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-5000}:80"
+    depends_on:
+      qalam-frontend:
+        condition: service_healthy
+      prediction-service:
+        condition: service_healthy
+      ramz-service:
+        condition: service_healthy

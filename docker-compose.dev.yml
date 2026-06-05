@@ -1,0 +1,81 @@
+services:
+  prediction-service:
+    build:
+      context: ./services/prediction-service
+      dockerfile: Dockerfile
+    container_name: prediction-service-dev
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "${PREDICTION_PORT:-8002}:8000"
+    volumes:
+      - ./services/prediction-service:/app
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  ramz-service:
+    build:
+      context: ./services/ramz-service
+      dockerfile: Dockerfile
+    container_name: ramz-service-dev
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "${RAMZ_PORT:-8000}:8000"
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8002,http://127.0.0.1:8002}
+    volumes:
+      - ./services/ramz-service:/app
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  qalam-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: deps
+    container_name: qalam-frontend-dev
+    restart: unless-stopped
+    command: npm run dev -- --hostname 0.0.0.0
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/ramz}
+      NEXT_PUBLIC_PREDICTION_SERVICE_URL: ${NEXT_PUBLIC_PREDICTION_SERVICE_URL:-/api/prediction}
+      NEXT_PUBLIC_PREDICTION_WS_URL: ${NEXT_PUBLIC_PREDICTION_WS_URL:-ws://localhost:8002/ws/predict}
+      RAMZ_SERVICE_URL: http://ramz-service:8000
+      PREDICTION_SERVICE_URL: http://prediction-service:8000
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - qalam-node-modules:/app/node_modules
+      - qalam-next-cache:/app/.next
+    depends_on:
+      prediction-service:
+        condition: service_healthy
+      ramz-service:
+        condition: service_healthy
+
+volumes:
+  qalam-node-modules:
+  qalam-next-cache:
