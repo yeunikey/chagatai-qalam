@@ -15,17 +15,14 @@ import {
 export default function App() {
   const isLocalNextDev =
     typeof window !== "undefined" &&
-    window.location.hostname === "localhost" &&
-    window.location.port === "3000";
-  const predictionServiceUrl =
-    process.env.NEXT_PUBLIC_PREDICTION_SERVICE_URL ?? "/api/prediction";
+    window.location.hostname === "localhost";
   const predictionWsUrl =
-    process.env.NEXT_PUBLIC_PREDICTION_WS_URL ??
-    (typeof window !== "undefined"
+    typeof window !== "undefined"
       ? isLocalNextDev
-        ? "ws://localhost:8002/ws/predict"
-        : `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}${predictionServiceUrl.replace(/\/$/, "")}/ws/predict`
-      : "");
+        ? (process.env.NEXT_PUBLIC_PREDICTION_WS_URL ??
+          "ws://localhost:8002/ws/predict")
+        : `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/predict`
+      : "";
 
   const [showBookmarks, setShowBookmarks] = useState(false);
   const { bookmarks, addBookmark, deleteBookmark } = useBookmarks();

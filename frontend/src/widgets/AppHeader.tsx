@@ -40,9 +40,9 @@ export default function AppHeader() {
             <Image
               src="/logo2.png"
               alt=""
-              width={40}
+              width={34}
               height={40}
-              className="h-[40px] w-[40px] object-contain"
+              className="object-contain"
               priority
             />
           </span>

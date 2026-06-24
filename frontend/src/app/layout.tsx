@@ -14,9 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Chagatai Workbench",
-  description:
-    "Qalam keyboard and Ramz normalization tools for Chagatai text.",
+  title: "Chagatai Qalam",
+  description: "Qalam keyboard and Ramz normalization tools for Chagatai text.",
 };
 
 export default function RootLayout({

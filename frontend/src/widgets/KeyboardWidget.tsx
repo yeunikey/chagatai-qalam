@@ -3,18 +3,22 @@ import KeyButton from "@/features/KeyButton";
 import { INITIAL_KEYS } from "@/features/model/keys";
 import { useMemo } from "react";
 
+const LETTER_KEY_ORDER = [
+  2, 5, 6, 7, 40, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+  23, 24, 25, 26, 27, 28, 31, 33, 34, 35, 37, 36, 38, 29,
+];
+
 const KeyboardWidget = ({
   onKeyClick,
 }: {
   onKeyClick: (item: KeyItem) => void;
 }) => {
-  const letters = useMemo(
-    () =>
-      INITIAL_KEYS.filter(
-        (k) => k.id < 100 && k.id !== 30 && k.id !== 32 && k.id !== 39,
-      ),
-    [],
-  );
+  const letters = useMemo(() => {
+    const keysById = new Map(INITIAL_KEYS.map((key) => [key.id, key]));
+    return LETTER_KEY_ORDER.map((id) => keysById.get(id)).filter(
+      (key): key is KeyItem => Boolean(key),
+    );
+  }, []);
   const arabicDigits = useMemo(
     () => INITIAL_KEYS.filter((k) => k.id >= 100 && k.id < 110),
     [],

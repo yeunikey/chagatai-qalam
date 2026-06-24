@@ -1,8 +1,8 @@
 import { KeyItem } from "@/entities";
 
 const NON_FORWARD_CONNECTORS = new Set([
-  1, 2, 3, 4, 13, 14, 15, 16, 17, 37, 100, 101, 102, 103, 104, 105, 106, 107,
-  108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+  1, 2, 3, 4, 13, 14, 15, 16, 17, 37, 40, 100, 101, 102, 103, 104, 105, 106,
+  107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
 ]);
 
 const INITIAL_KEYS: KeyItem[] = [
@@ -45,6 +45,11 @@ const INITIAL_KEYS: KeyItem[] = [
     id: 7,
     label: "тә",
     value: { isolated: "ت", final: "ﺖ", medial: "ﺘ", initial: "ﺗ" },
+  },
+  {
+    id: 40,
+    label: "та-марбута",
+    value: { isolated: "ة", final: "ﺔ", medial: "—", initial: "—" },
   },
   {
     id: 8,
@@ -153,7 +158,7 @@ const INITIAL_KEYS: KeyItem[] = [
   },
   {
     id: 29,
-    label: "кәф",
+    label: "ң",
     value: { isolated: "ڭ", final: "ﯔ", medial: "ﯖ", initial: "ﯕ" },
   },
   {
