@@ -1,0 +1,8 @@
+ chagatai-qalam-translate-service  Built
+ Volume "chagatai-qalam_translate-hf-cache"  Creating
+ Volume "chagatai-qalam_translate-hf-cache"  Created
+time="2026-06-24T17:49:55+05:00" level=warning msg="Found orphan containers ([nginx-qalam frontend-qalam]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container translate-service-dev  Creating
+ Container translate-service-dev  Created
+ Container translate-service-dev  Starting
+ Container translate-service-dev  Started

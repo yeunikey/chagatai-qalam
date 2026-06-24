@@ -49,6 +49,35 @@ services:
       retries: 5
       start_period: 15s
 
+  translate-service:
+    build:
+      context: ./services/translate-service
+      dockerfile: Dockerfile
+    container_name: translate-service-dev
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "${TRANSLATE_PORT:-8003}:8000"
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:8003,http://127.0.0.1:8003}
+      HF_TOKEN: ${HF_TOKEN:-}
+      HUGGINGFACE_HUB_TOKEN: ${HUGGINGFACE_HUB_TOKEN:-}
+    volumes:
+      - ./services/translate-service:/app
+      - translate-hf-cache:/models/huggingface
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
   qalam-frontend:
     build:
       context: ./frontend
@@ -61,9 +90,11 @@ services:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/ramz}
+      NEXT_PUBLIC_TRANSLATE_API_BASE_URL: ${NEXT_PUBLIC_TRANSLATE_API_BASE_URL:-/api/translate}
       NEXT_PUBLIC_PREDICTION_SERVICE_URL: ${NEXT_PUBLIC_PREDICTION_SERVICE_URL:-/api/prediction}
       NEXT_PUBLIC_PREDICTION_WS_URL: ${NEXT_PUBLIC_PREDICTION_WS_URL:-ws://localhost:8002/ws/predict}
       RAMZ_SERVICE_URL: http://ramz-service:8000
+      TRANSLATE_SERVICE_URL: http://translate-service:8000
       PREDICTION_SERVICE_URL: http://prediction-service:8000
       WATCHPACK_POLLING: "true"
     volumes:
@@ -75,7 +106,10 @@ services:
         condition: service_healthy
       ramz-service:
         condition: service_healthy
+      translate-service:
+        condition: service_healthy
 
 volumes:
   qalam-node-modules:
   qalam-next-cache:
+  translate-hf-cache:

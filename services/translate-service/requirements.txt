@@ -1,0 +1,12 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+torch==2.7.1+cpu
+transformers==4.53.0
+accelerate==1.8.1
+peft==0.15.2
+protobuf==5.29.5
+sentencepiece==0.2.0
+safetensors==0.5.3

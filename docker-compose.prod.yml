@@ -43,12 +43,40 @@ services:
       retries: 5
       start_period: 15s
 
+  translate-service:
+    build:
+      context: ./services/translate-service
+      dockerfile: Dockerfile
+    container_name: translate-service
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://127.0.0.1}
+      HF_TOKEN: ${HF_TOKEN:-}
+      HUGGINGFACE_HUB_TOKEN: ${HUGGINGFACE_HUB_TOKEN:-}
+    volumes:
+      - translate-hf-cache:/models/huggingface
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
   qalam-frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/ramz}
+        NEXT_PUBLIC_TRANSLATE_API_BASE_URL: ${NEXT_PUBLIC_TRANSLATE_API_BASE_URL:-/api/translate}
         NEXT_PUBLIC_PREDICTION_SERVICE_URL: ${NEXT_PUBLIC_PREDICTION_SERVICE_URL:-/api/prediction}
         NEXT_PUBLIC_PREDICTION_WS_URL: ${NEXT_PUBLIC_PREDICTION_WS_URL:-}
     container_name: qalam-frontend
@@ -57,12 +85,15 @@ services:
       - "3000"
     environment:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/ramz}
+      NEXT_PUBLIC_TRANSLATE_API_BASE_URL: ${NEXT_PUBLIC_TRANSLATE_API_BASE_URL:-/api/translate}
       NEXT_PUBLIC_PREDICTION_SERVICE_URL: ${NEXT_PUBLIC_PREDICTION_SERVICE_URL:-/api/prediction}
       NEXT_PUBLIC_PREDICTION_WS_URL: ${NEXT_PUBLIC_PREDICTION_WS_URL:-}
     depends_on:
       prediction-service:
         condition: service_healthy
       ramz-service:
+        condition: service_healthy
+      translate-service:
         condition: service_healthy
     healthcheck:
       test:
@@ -92,3 +123,8 @@ services:
         condition: service_healthy
       ramz-service:
         condition: service_healthy
+      translate-service:
+        condition: service_healthy
+
+volumes:
+  translate-hf-cache:

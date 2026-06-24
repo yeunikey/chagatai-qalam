@@ -1,6 +1,6 @@
 "use client";
 
-import { Keyboard, Shuffle } from "lucide-react";
+import { Grid3X3, Keyboard, Languages, Shuffle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,25 +8,58 @@ import { usePathname } from "next/navigation";
 const services = [
   {
     href: "/",
+    label: "Services",
+    description: "catalog",
+    icon: Grid3X3,
+  },
+  {
+    href: "/qalam",
     label: "Qalam",
-    description: "клавиатура",
+    description: "keyboard",
     icon: Keyboard,
   },
   {
     href: "/ramz",
     label: "Ramz",
-    description: "нормализация",
+    description: "normalizer",
     icon: Shuffle,
+  },
+  {
+    href: "/translate",
+    label: "Translate",
+    description: "models",
+    icon: Languages,
   },
 ];
 
+const pageMeta = {
+  "/": {
+    title: "Chagatai Tools",
+    description: "Ready services for Chagatai text work.",
+  },
+  "/qalam": {
+    title: "Chagatai Qalam",
+    description: "Chagatai keyboard with fast input and suggestions.",
+  },
+  "/ramz": {
+    title: "Chagatai Ramz",
+    description: "Normalization for Arabic-script Chagatai text.",
+  },
+  "/translate": {
+    title: "Chagatai Translate",
+    description: "Translation with selectable models.",
+  },
+};
+
 export default function AppHeader() {
   const pathname = usePathname();
-  const isRamz = pathname.startsWith("/ramz");
-  const title = isRamz ? "Chagatai Ramz" : "Chagatai Qalam";
-  const description = isRamz
-    ? "Нормализация арабографичного чагатайского текста."
-    : "Чагатайская клавиатура с быстрым вводом и подсказками.";
+  const currentMeta = pathname.startsWith("/ramz")
+    ? pageMeta["/ramz"]
+    : pathname.startsWith("/translate")
+      ? pageMeta["/translate"]
+    : pathname.startsWith("/qalam")
+      ? pageMeta["/qalam"]
+      : pageMeta["/"];
 
   return (
     <header className="sticky top-0 z-40 bg-background/95 px-4 backdrop-blur md:px-8">
@@ -48,17 +81,17 @@ export default function AppHeader() {
           </span>
           <span className="min-w-0">
             <span className="block truncate text-base font-semibold leading-5">
-              {title}
+              {currentMeta.title}
             </span>
             <span className="block truncate text-xs font-medium text-slate-500">
-              {description}
+              {currentMeta.description}
             </span>
           </span>
         </Link>
 
         <nav
           className="flex flex-none items-center gap-1 rounded-2xl bg-white p-1.5 shadow-sm"
-          aria-label="Сервисы"
+          aria-label="Services"
         >
           {services.map((service) => {
             const Icon = service.icon;
